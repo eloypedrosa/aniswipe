@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>aniswipe | rapid anime tracker</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="app.js"></script>
+    <link rel="shortcut icon" href="gto_anime.png" type="image/x-icon" />
+  </head>
+  <body>
+    <div id="background-mosaic"></div>
+
+    <header>
+      <div>
+        <div class="mode-switch">
+          <button class="mode-btn active" data-mode="anime">Anime</button>
+          <button class="mode-btn" data-mode="manga">Manga</button>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <span
+          id="stats-text"
+          style="margin-right: 5px; font-size: 0.75rem; color: #aaa"
+          >0</span
+        >
+
+        <button class="header-btn" id="btn-filters">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3M1 14h6m2-6h6m2 8h6"
+            />
+          </svg>
+          <span data-i18n="filters">Filtros</span>
+        </button>
+        <button class="header-btn" id="btn-export">CSV</button>
+        <button class="header-btn" id="btn-reset" title="Reiniciar">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"
+            />
+          </svg>
+        </button>
+        <button
+          class="header-btn"
+          id="btn-lang"
+          style="font-weight: 800; min-width: 35px; justify-content: center"
+        >
+          ES
+        </button>
+      </div>
+    </header>
+
+    <div id="card-container">
+      <div id="card-stack"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-action" id="btn-undo" title="Deshacer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M9 14l-4-4 4-4" />
+          <path d="M5 10h11a4 4 0 1 1 0 8h-1" />
+        </svg>
+      </button>
+      <button class="btn-action btn-skip" id="btn-left">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <button class="btn-action btn-plan" id="btn-up">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M12 4v16m-8-8h16" />
+        </svg>
+      </button>
+      <button class="btn-action btn-drop" id="btn-down">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+        </svg>
+      </button>
+      <button class="btn-action btn-love" id="btn-right">
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-overlay" id="filter-modal">
+      <div class="filter-panel">
+        <div class="filter-header">
+          <span class="filter-title" data-i18n="filterTitle">Filtrar</span>
+          <span style="cursor: pointer; color: #aaa" id="close-modal">✕</span>
+        </div>
+
+        <div id="dynamic-filters"></div>
+
+        <button class="btn-apply" id="apply-filters" data-i18n="applyFilters">
+          Aplicar Filtros
+        </button>
+      </div>
+    </div>
+  </body>
+</html>
