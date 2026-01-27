@@ -482,6 +482,18 @@ class aniswipe {
                 </div>
             </div>
           `;
+
+    const titleEl = card.querySelector(".card-title");
+
+    const stopPropagation = (e) => e.stopPropagation();
+    titleEl.addEventListener("mousedown", stopPropagation);
+    titleEl.addEventListener("touchstart", stopPropagation);
+
+    titleEl.addEventListener("click", (e) => {
+      e.stopPropagation();
+      navigator.clipboard.writeText(item.title).then(() => {});
+    });
+
     this.cardStack.appendChild(card);
     this.initGestures(card, item);
 

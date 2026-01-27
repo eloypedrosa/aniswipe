@@ -228,7 +228,15 @@ body.mode-manga .mode-btn.active[data-mode="manga"] {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  z-index: 9999;
+  user-select: none;
+  pointer-events: auto;
+  transition: opacity 0.2s;
 }
+.card-title:active {
+  opacity: 0.6;
+}
+
 .card-meta {
   display: flex;
   flex-wrap: wrap;
