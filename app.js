@@ -259,7 +259,11 @@ const GENRES = Object.keys(GENRE_TRANSLATIONS);
 
 // --- CONFIGURACIÓN ---
 const API_URL = "https://graphql.anilist.co";
-const PER_PAGE = 50; // máximo permitido por AniList: menos peticiones
+// AniList limita la complejidad de cada consulta: 20 títulos con pocos campos.
+// Sinopsis, estudio, etc. se piden al abrir la ficha de cada título.
+const PER_PAGE = 20;
+const MAX_DEPTH = 5000; // AniList rechaza páginas más allá de la entrada 5000
+const BACKFILL_CHUNK = 20;
 const STORAGE = {
   lists: { anime: "animeList_v3", manga: "mangaList_v3" },
   lang: "app_lang",
@@ -323,19 +327,28 @@ const defaultFilters = () => ({
 const MEDIA_FIELDS = `
   id
   idMal
-  title { romaji english native }
-  coverImage { extraLarge large color }
+  title { romaji english }
+  coverImage { extraLarge large }
   averageScore
   format
   status
   episodes
   chapters
-  volumes
   seasonYear
   startDate { year }
   genres
-  description(asHtml: false)
-  siteUrl
+`;
+// Plan B: los mismos campos que la consulta original, que siempre ha funcionado
+const SAFE_MEDIA_FIELDS = `
+  id
+  title { romaji english native }
+  coverImage { extraLarge large }
+  averageScore
+  format
+  status
+  seasonYear
+  startDate { year }
+  genres
 `;
 
 // --- UTILIDADES ---
@@ -598,11 +611,13 @@ class aniswipe {
   }
 
   getStartPage() {
+    const lastPage = MAX_DEPTH / PER_PAGE;
     const saved = this.cursors[this.cursorKey];
-    if (saved) return saved;
+    if (saved) return Math.min(saved, lastPage);
     // Estimación para listas antiguas sin cursor guardado
     if (!this.hasActiveFilters() && this.currentList.length > 0) {
-      return Math.max(1, Math.floor(this.currentList.length / PER_PAGE));
+      const estimate = Math.floor(this.currentList.length / PER_PAGE);
+      return Math.min(Math.max(1, estimate), lastPage);
     }
     return 1;
   }
@@ -634,7 +649,7 @@ class aniswipe {
       Page(page: $page, perPage: $perPage) {
         pageInfo { hasNextPage }
         media(type: $type, sort: $sort, format_in: $format, status: $status, genre_in: $genres, countryOfOrigin: $country, startDate_greater: $from, startDate_lesser: $to, isAdult: false) {
-          ${MEDIA_FIELDS}
+          ${this.safeFields ? SAFE_MEDIA_FIELDS : MEDIA_FIELDS}
         }
       }
     }`;
@@ -656,7 +671,9 @@ class aniswipe {
           body: JSON.stringify({ query, variables }),
         });
       } catch {
-        throw new Error(this.t("offline"));
+        const error = new Error(this.t("offline"));
+        error.network = true;
+        throw error;
       }
 
       if (response.status === 429 && attempt < 3) {
@@ -674,7 +691,9 @@ class aniswipe {
       const json = await response.json().catch(() => ({}));
       if (!response.ok || json.errors) {
         const errMsg = json.errors?.[0]?.message || response.statusText;
-        throw new Error(`AniList: ${errMsg || response.status}`);
+        const error = new Error(`AniList: ${errMsg || response.status}`);
+        error.status = response.status;
+        throw error;
       }
       return json.data;
     }
@@ -686,6 +705,7 @@ class aniswipe {
     const token = this.fetchToken;
     this.isLoading = true;
     this.lastError = null;
+    let retry = false;
 
     try {
       // Pausa corta si las últimas páginas no aportaron nada nuevo (evita ráfagas)
@@ -721,7 +741,8 @@ class aniswipe {
       this.emptyStreak = fresh.length ? 0 : this.emptyStreak + 1;
       this.page++;
 
-      if (!hasNextPage || media.length === 0) {
+      const tooDeep = this.page * PER_PAGE > MAX_DEPTH;
+      if (!hasNextPage || media.length === 0 || tooDeep) {
         // Si empezamos a mitad de catálogo, damos una vuelta desde la página 1
         if (this.startPage > 1 && !this.wrapped) {
           this.wrapped = true;
@@ -737,7 +758,13 @@ class aniswipe {
     } catch (error) {
       if (token !== this.fetchToken) return;
       console.error("Fetch Error:", error);
-      this.lastError = error;
+      // Si AniList rechaza la consulta, se reintenta con la consulta mínima
+      if (!error.network && error.status !== 429 && !this.safeFields) {
+        this.safeFields = true;
+        retry = true;
+      } else {
+        this.lastError = error;
+      }
     } finally {
       if (token === this.fetchToken) {
         this.isLoading = false;
@@ -745,7 +772,9 @@ class aniswipe {
       }
     }
 
-    if (token === this.fetchToken) this.renderCards();
+    if (token !== this.fetchToken) return;
+    if (retry) this.fetchItems();
+    else this.renderCards();
   }
 
   normalizeMedia(m, page) {
@@ -753,25 +782,21 @@ class aniswipe {
       m.title?.romaji || m.title?.english || m.title?.native || "Sin Título";
     return {
       id: m.id,
-      idMal: m.idMal || null,
+      // Sin la clave idMal, la entrada se completará más tarde (backfill)
+      idMal: "idMal" in m ? m.idMal || null : undefined,
       title,
       titleEn:
         m.title?.english && m.title.english !== title ? m.title.english : "",
-      titleNative: m.title?.native || "",
       cover: m.coverImage?.large || "",
       coverLarge: m.coverImage?.extraLarge || m.coverImage?.large || "",
-      color: m.coverImage?.color || "",
       score: m.averageScore ? m.averageScore / 10 : null,
       format: m.format || "",
       airing: m.status || "",
       year: m.seasonYear || m.startDate?.year || null,
       episodes: m.episodes || null,
       chapters: m.chapters || null,
-      volumes: m.volumes || null,
       genres: m.genres || [],
-      description: m.description || "",
-      studio: m.studios?.nodes?.[0]?.name,
-      siteUrl: m.siteUrl || `https://anilist.co/${this.mode}/${m.id}`,
+      siteUrl: `https://anilist.co/${this.mode}/${m.id}`,
       page,
     };
   }
@@ -871,7 +896,6 @@ class aniswipe {
     const card = document.createElement("div");
     card.className = "card";
     card._item = item;
-    if (item.color) card.style.backgroundColor = item.color;
 
     // Textos traducidos para los sellos
     const upText = this.mode === "anime" ? this.t("plan") : this.t("plan_read");
@@ -1220,11 +1244,6 @@ class aniswipe {
       meta.push(this.t(isManga ? "publishing" : "releasing"));
     else if (item.airing === "FINISHED") meta.push(this.t("finished"));
 
-    const altTitles = [item.titleEn, item.titleNative]
-      .filter((t) => t && t !== item.title)
-      .map(escapeHTML)
-      .join(" · ");
-
     const actions = isTop
       ? `<div class="detail-actions">
           ${[
@@ -1246,7 +1265,7 @@ class aniswipe {
         ${item.cover ? `<img class="detail-cover" src="${escapeHTML(item.cover)}" alt="">` : ""}
         <div class="detail-heading">
           <h2 class="detail-title">${escapeHTML(item.title)}</h2>
-          ${altTitles ? `<p class="detail-alt">${altTitles}</p>` : ""}
+          <p class="detail-alt"></p>
           <div class="card-meta">
             ${meta.map((m) => `<span class="badge">${escapeHTML(m)}</span>`).join("")}
             ${item.score ? `<span class="score">★ ${item.score.toFixed(1)}</span>` : ""}
@@ -1271,9 +1290,13 @@ class aniswipe {
       </div>
       ${actions}`;
 
-    body.querySelector(".detail-desc").textContent =
-      this.cleanDescription(item.description) || this.t("noDescription");
-    this.loadStudio(item, body.querySelector(".detail-studio"));
+    this.fillDetails(item, body);
+    if (item.description === undefined) {
+      this.loadDetails(item).then(() => {
+        if (body.isConnected && this.detailSheet.open)
+          this.fillDetails(item, body);
+      });
+    }
     body.querySelector("[data-copy]").onclick = () =>
       this.copyTitle(item.title);
     body.querySelectorAll("[data-dir]").forEach((btn) => {
@@ -1287,22 +1310,43 @@ class aniswipe {
     if (!this.detailSheet.open) this.detailSheet.showModal();
   }
 
-  // El estudio se pide aparte (solo anime) para no inflar la consulta de 50 títulos
-  async loadStudio(item, el) {
-    const show = () => {
-      el.textContent = item.studio ? `${this.t("studio")}: ${item.studio}` : "";
-    };
-    if (item.studio !== undefined || this.mode !== "anime") return show();
+  // Partes de la ficha que dependen de datos cargados bajo demanda
+  fillDetails(item, body) {
+    body.querySelector(".detail-alt").textContent = [
+      item.titleEn,
+      item.titleNative,
+    ]
+      .filter((t) => t && t !== item.title)
+      .join(" · ");
+    body.querySelector(".detail-studio").textContent = item.studio
+      ? `${this.t("studio")}: ${item.studio}`
+      : "";
+    body.querySelector(".detail-desc").textContent =
+      item.description === undefined
+        ? `${this.t("loading")}…`
+        : this.cleanDescription(item.description) || this.t("noDescription");
+  }
+
+  // Sinopsis, título nativo y estudio: una consulta ligera por título
+  async loadDetails(item) {
     try {
       const data = await this.apiRequest(
-        `query ($id: Int) { Media(id: $id) { studios(isMain: true) { nodes { name } } } }`,
+        `query ($id: Int) {
+          Media(id: $id) {
+            description(asHtml: false)
+            title { native }
+            studios(isMain: true) { nodes { name } }
+          }
+        }`,
         { id: item.id },
       );
-      item.studio = data?.Media?.studios?.nodes?.[0]?.name || "";
+      const m = data?.Media;
+      item.description = m?.description || "";
+      item.titleNative = m?.title?.native || "";
+      item.studio = m?.studios?.nodes?.[0]?.name || "";
     } catch {
-      return;
+      item.description = "";
     }
-    if (el.isConnected) show();
   }
 
   // AniList devuelve la sinopsis con <br>, <i>… -> texto plano seguro
@@ -1617,17 +1661,17 @@ class aniswipe {
   async backfillEntries(mode, maxBatches = Infinity) {
     if (this.backfilling) return this.backfilling;
     const run = async () => {
-      const missing = this.lists[mode].filter((e) => !("idMal" in e));
+      const missing = this.lists[mode].filter((e) => e.idMal === undefined);
       let changed = false;
       for (
         let i = 0, batch = 0;
         i < missing.length && batch < maxBatches;
-        i += 50, batch++
+        i += BACKFILL_CHUNK, batch++
       ) {
-        const chunk = missing.slice(i, i + 50);
+        const chunk = missing.slice(i, i + BACKFILL_CHUNK);
         const data = await this.apiRequest(
           `query ($ids: [Int]) {
-            Page(perPage: 50) {
+            Page(perPage: ${BACKFILL_CHUNK}) {
               media(id_in: $ids) {
                 id idMal title { english } coverImage { large } format
                 seasonYear startDate { year } episodes chapters volumes averageScore
@@ -1677,7 +1721,7 @@ class aniswipe {
     }
     this.toast(this.t("preparing"));
     // Puede haber otro relleno en curso (limitado): repetir hasta completar
-    while (this.lists[mode].some((e) => !("idMal" in e))) {
+    while (this.lists[mode].some((e) => e.idMal === undefined)) {
       if (!(await this.backfillEntries(mode))) break;
     }
 

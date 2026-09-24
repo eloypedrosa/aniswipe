@@ -1,7 +1,7 @@
 // Service worker: permite instalar la app y abrirla sin conexión.
 // Estrategia "red primero": cada despliegue se ve al instante y la caché
 // solo se usa cuando no hay conexión. Las peticiones a AniList no se tocan.
-const CACHE = "aniswipe-v1";
+const CACHE = "aniswipe-v2";
 const SHELL = [
   "./",
   "index.html",
@@ -44,7 +44,8 @@ self.addEventListener("fetch", (event) => {
     return;
 
   event.respondWith(
-    fetch(request)
+    // no-cache: siempre se revalida con el servidor (evita servir una versión vieja)
+    fetch(request.url, { cache: "no-cache" })
       .then((response) => {
         if (response.ok) {
           const copy = response.clone();
