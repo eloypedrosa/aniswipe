@@ -7,29 +7,79 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <title>aniswipe | rapid anime tracker</title>
+    <meta
+      name="description"
+      content="Build your anime & manga list in minutes: swipe through popular titles from AniList and export them to MyAnimeList or AniList."
+    />
+    <meta name="theme-color" content="#0f0f13" />
+    <meta name="color-scheme" content="dark" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="gto_anime.png" type="image/png" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="aniswipe" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="aniswipe — rapid anime tracker" />
+    <meta
+      property="og:description"
+      content="Swipe through popular anime & manga and build your watched list in minutes."
+    />
+    <meta property="og:url" content="https://eloypedrosa.github.io/aniswipe/" />
+    <meta
+      property="og:image"
+      content="https://eloypedrosa.github.io/aniswipe/icon-512.png"
+    />
+    <meta name="twitter:card" content="summary" />
+
+    <link rel="preconnect" href="https://graphql.anilist.co" crossorigin />
+    <link rel="preconnect" href="https://s4.anilist.co" />
     <link rel="stylesheet" href="style.css" />
-    <script src="app.js"></script>
-    <link rel="shortcut icon" href="gto_anime.png" type="image/x-icon" />
+    <script src="app.js" defer></script>
   </head>
   <body>
-    <div id="background-mosaic"></div>
+    <div id="background-mosaic" aria-hidden="true"></div>
 
     <header>
-      <div>
-        <div class="mode-switch">
-          <button class="mode-btn active" data-mode="anime">Anime</button>
-          <button class="mode-btn" data-mode="manga">Manga</button>
-        </div>
+      <div class="mode-switch">
+        <button class="mode-btn active" data-mode="anime">Anime</button>
+        <button class="mode-btn" data-mode="manga">Manga</button>
       </div>
 
       <div class="header-actions">
-        <span
-          id="stats-text"
-          style="margin-right: 5px; font-size: 0.75rem; color: #aaa"
-          >0</span
+        <button
+          class="header-btn"
+          id="btn-list"
+          data-i18n-title="myList"
+          title="Mi lista"
         >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+          </svg>
+          <span class="btn-label" data-i18n="myList">Mi lista</span>
+          <span class="count" id="stats-text">0</span>
+        </button>
 
-        <button class="header-btn" id="btn-filters">
+        <button
+          class="header-btn"
+          id="btn-filters"
+          data-i18n-title="filters"
+          title="Filtros"
+        >
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -40,79 +90,187 @@
               d="M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3M1 14h6m2-6h6m2 8h6"
             />
           </svg>
-          <span data-i18n="filters">Filtros</span>
+          <span class="btn-label" data-i18n="filters">Filtros</span>
+          <span class="count" id="filter-count" hidden>0</span>
         </button>
-        <button class="header-btn" id="btn-export">CSV</button>
-        <button class="header-btn" id="btn-reset" title="Reiniciar">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path
-              d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"
-            />
-          </svg>
-        </button>
+
         <button
-          class="header-btn"
+          class="header-btn btn-lang"
           id="btn-lang"
-          style="font-weight: 800; min-width: 35px; justify-content: center"
+          data-i18n-title="language"
+          title="Idioma"
         >
           ES
         </button>
       </div>
     </header>
 
-    <div id="card-container">
+    <main id="card-container">
       <div id="card-stack"></div>
-    </div>
+    </main>
 
-    <div class="controls">
-      <button class="btn-action" id="btn-undo" title="Deshacer">
+    <nav class="controls">
+      <button
+        class="btn-action small"
+        id="btn-undo"
+        data-i18n-title="undoHint"
+        title="Deshacer (Retroceso)"
+      >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M9 14l-4-4 4-4" />
           <path d="M5 10h11a4 4 0 1 1 0 8h-1" />
         </svg>
+        <span class="btn-caption" data-i18n="undo">Deshacer</span>
       </button>
-      <button class="btn-action btn-skip" id="btn-left">
+      <button
+        class="btn-action btn-skip"
+        id="btn-left"
+        data-i18n-title="skipHint"
+        title="Saltar (←)"
+      >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M6 18L18 6M6 6l12 12" />
         </svg>
+        <span class="btn-caption" data-i18n="skipShort">Saltar</span>
       </button>
-      <button class="btn-action btn-plan" id="btn-up">
+      <button
+        class="btn-action btn-plan"
+        id="btn-up"
+        data-i18n-title="planHint"
+        title="Pendiente (↑)"
+      >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M12 4v16m-8-8h16" />
         </svg>
+        <span class="btn-caption" data-i18n="planShort">Pendiente</span>
       </button>
-      <button class="btn-action btn-drop" id="btn-down">
+      <button
+        class="btn-action btn-drop"
+        id="btn-down"
+        data-i18n-title="dropHint"
+        title="Abandonado (↓)"
+      >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M19 14l-7 7m0 0l-7-7m7 7V3" />
         </svg>
+        <span class="btn-caption" data-i18n="dropShort">Abandonado</span>
       </button>
-      <button class="btn-action btn-love" id="btn-right">
+      <button
+        class="btn-action btn-love"
+        id="btn-right"
+        data-i18n-title="seenHint"
+        title="Visto (→)"
+      >
         <svg viewBox="0 0 24 24">
           <path
             d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
           />
         </svg>
+        <span class="btn-caption" data-i18n="seenShort">Visto</span>
       </button>
-    </div>
+    </nav>
 
-    <div class="modal-overlay" id="filter-modal">
-      <div class="filter-panel">
-        <div class="filter-header">
-          <span class="filter-title" data-i18n="filterTitle">Filtrar</span>
-          <span style="cursor: pointer; color: #aaa" id="close-modal">✕</span>
+    <!-- FILTROS -->
+    <dialog class="sheet" id="filter-sheet">
+      <div class="sheet-panel">
+        <div class="sheet-header">
+          <h2 class="sheet-title" data-i18n="filterTitle">Filtrar</h2>
+          <button
+            class="icon-btn"
+            data-close
+            data-i18n-aria="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
         </div>
-
-        <div id="dynamic-filters"></div>
-
-        <button class="btn-apply" id="apply-filters" data-i18n="applyFilters">
-          Aplicar Filtros
-        </button>
+        <div class="sheet-body" id="dynamic-filters"></div>
+        <div class="sheet-footer filter-footer">
+          <button class="btn-secondary" id="clear-filters" data-i18n="clear">
+            Limpiar
+          </button>
+          <button class="btn-apply" id="apply-filters" data-i18n="applyFilters">
+            Aplicar Filtros
+          </button>
+        </div>
       </div>
-    </div>
+    </dialog>
+
+    <!-- MI LISTA -->
+    <dialog class="sheet" id="list-sheet">
+      <div class="sheet-panel list-panel">
+        <div class="sheet-header">
+          <h2 class="sheet-title" id="list-title">Mi lista</h2>
+          <button
+            class="icon-btn"
+            data-close
+            data-i18n-aria="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="list-tabs" id="list-tabs" role="tablist"></div>
+        <div class="list-search">
+          <input
+            type="search"
+            id="list-search"
+            autocomplete="off"
+            data-i18n-placeholder="search"
+            placeholder="Buscar…"
+          />
+        </div>
+        <ul class="sheet-body list-items" id="list-items"></ul>
+        <details class="sheet-footer list-tools">
+          <summary data-i18n="exportImport">Exportar / importar</summary>
+          <div class="tools-grid">
+            <button class="tool-btn primary" id="btn-export-mal">
+              <strong data-i18n="exportMal">MyAnimeList / AniList</strong>
+              <small data-i18n="exportMalSub">XML para importar</small>
+            </button>
+            <button class="tool-btn" id="btn-export-csv">
+              <strong>CSV</strong>
+              <small data-i18n="exportCsvSub">Hoja de cálculo</small>
+            </button>
+            <button class="tool-btn" id="btn-export-json">
+              <strong data-i18n="backup">Copia</strong>
+              <small data-i18n="backupSub">Anime + manga (JSON)</small>
+            </button>
+            <button class="tool-btn" id="btn-import-json">
+              <strong data-i18n="restore">Restaurar</strong>
+              <small data-i18n="restoreSub">Desde una copia</small>
+            </button>
+          </div>
+          <p class="tools-hint" id="tools-hint"></p>
+          <button class="btn-danger" id="btn-reset"></button>
+          <input
+            type="file"
+            id="import-file"
+            accept="application/json,.json"
+            hidden
+          />
+        </details>
+      </div>
+    </dialog>
+
+    <!-- DETALLE -->
+    <dialog class="sheet" id="detail-sheet">
+      <div class="sheet-panel">
+        <div class="sheet-header">
+          <span></span>
+          <button
+            class="icon-btn"
+            data-close
+            data-i18n-aria="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="sheet-body" id="detail-body"></div>
+      </div>
+    </dialog>
+
+    <div id="toast" role="status" aria-live="polite"></div>
   </body>
 </html>
