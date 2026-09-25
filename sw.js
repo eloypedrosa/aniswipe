@@ -1,7 +1,7 @@
 // Service worker: permite instalar la app y abrirla sin conexión.
 // Estrategia "red primero": cada despliegue se ve al instante y la caché
 // solo se usa cuando no hay conexión. Las peticiones a AniList no se tocan.
-const CACHE = "aniswipe-v2";
+const CACHE = "aniswipe-v3";
 const SHELL = [
   "./",
   "index.html",

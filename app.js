@@ -16,6 +16,7 @@ const TRANSLATIONS = {
     retry: "Reintentar",
     rateLimited: "AniList está saturado. Reintentando en {s}s…",
     offline: "No se pudo conectar con AniList. Revisa tu conexión.",
+    timeout: "AniList está tardando demasiado en responder.",
     // Controles
     undo: "Deshacer",
     undoHint: "Deshacer (Retroceso)",
@@ -133,6 +134,7 @@ const TRANSLATIONS = {
     retry: "Retry",
     rateLimited: "AniList is busy. Retrying in {s}s…",
     offline: "Couldn't reach AniList. Check your connection.",
+    timeout: "AniList is taking too long to respond.",
     // Controls
     undo: "Undo",
     undoHint: "Undo (Backspace)",
@@ -264,6 +266,7 @@ const API_URL = "https://graphql.anilist.co";
 const PER_PAGE = 20;
 const MAX_DEPTH = 5000; // AniList rechaza páginas más allá de la entrada 5000
 const BACKFILL_CHUNK = 20;
+const REQUEST_TIMEOUT = 20000; // ms: una petición colgada no deja la baraja cargando para siempre
 const STORAGE = {
   lists: { anime: "animeList_v3", manga: "mangaList_v3" },
   lang: "app_lang",
@@ -629,7 +632,8 @@ class aniswipe {
       page: this.page,
       perPage: PER_PAGE,
       type: this.mode.toUpperCase(),
-      sort: [...new Set([f.sort, "POPULARITY_DESC", "ID"])],
+      // Un solo criterio: añadir otro (p. ej. ID) vuelve la consulta muy lenta en AniList
+      sort: [f.sort],
     };
     if (f.format && FORMAT_MAP[f.format])
       variables.format = FORMAT_MAP[f.format];
@@ -661,6 +665,8 @@ class aniswipe {
   async apiRequest(query, variables, { token, onWait } = {}) {
     for (let attempt = 0; ; attempt++) {
       let response;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
       try {
         response = await fetch(API_URL, {
           method: "POST",
@@ -669,11 +675,15 @@ class aniswipe {
             Accept: "application/json",
           },
           body: JSON.stringify({ query, variables }),
+          signal: controller.signal,
         });
       } catch {
-        const error = new Error(this.t("offline"));
+        const timedOut = controller.signal.aborted;
+        const error = new Error(this.t(timedOut ? "timeout" : "offline"));
         error.network = true;
         throw error;
+      } finally {
+        clearTimeout(timer);
       }
 
       if (response.status === 429 && attempt < 3) {
@@ -729,7 +739,14 @@ class aniswipe {
       this.fetchedCount += media.length;
       const items = media.map((m) => this.normalizeMedia(m, fetchedPage));
 
-      if (this.mosaicMode !== this.mode) this.generateBackgroundMosaic(items);
+      if (this.mosaicMode !== this.mode) {
+        // El mosaico espera un poco: primero se descarga la portada de la carta
+        this.mosaicMode = this.mode;
+        const mode = this.mode;
+        setTimeout(() => {
+          if (this.mode === mode) this.generateBackgroundMosaic(items);
+        }, 1500);
+      }
 
       const savedIds = new Set(this.currentList.map((e) => e.id));
       const queuedIds = new Set(this.queue.map((i) => i.id));
@@ -753,13 +770,11 @@ class aniswipe {
       } else if (this.wrapped && this.page >= this.startPage) {
         this.exhausted = true;
       }
-
-      this.preloadImages();
     } catch (error) {
       if (token !== this.fetchToken) return;
       console.error("Fetch Error:", error);
-      // Si AniList rechaza la consulta, se reintenta con la consulta mínima
-      if (!error.network && error.status !== 429 && !this.safeFields) {
+      // Si AniList rechaza la consulta (400), se reintenta con la consulta mínima
+      if (error.status === 400 && !this.safeFields) {
         this.safeFields = true;
         retry = true;
       } else {
@@ -802,7 +817,7 @@ class aniswipe {
   }
 
   preloadImages() {
-    this.queue.slice(0, 5).forEach((item) => {
+    this.queue.slice(2, 5).forEach((item) => {
       const url = item.coverLarge;
       if (url && !this.preloadedImages.has(url)) {
         const img = new Image();
@@ -840,6 +855,7 @@ class aniswipe {
     if (top) this.setCardRole(top, "top");
 
     this.renderState();
+    this.preloadImages();
 
     // Precarga cuando quedan pocas cartas (tras un error, solo al reintentar)
     if (
@@ -942,7 +958,9 @@ class aniswipe {
         }
       </div>`;
 
+    card._stamps = card.querySelectorAll(".status-indicator");
     const img = card.querySelector(".card-image");
+    img.decoding = "async";
     img.onload = () => img.classList.add("loaded");
     img.onerror = () => img.remove();
     img.src = item.coverLarge || item.cover;
@@ -997,6 +1015,7 @@ class aniswipe {
         moveX = moveY = 0;
         startTime = performance.now();
         samples = [{ x: 0, y: 0, t: startTime }];
+        card._next = this.cardStack.querySelector(".card.is-next");
         try {
           card.setPointerCapture(pointerId);
         } catch {}
@@ -1081,22 +1100,33 @@ class aniswipe {
     return null;
   }
 
+  // Como mucho un repintado por fotograma, aunque lleguen más eventos de puntero
   dragVisual(card, dx, dy) {
-    card.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx * 0.05}deg)`;
-    const dir = this.directionOf(dx, dy);
-    const strength = Math.min(Math.max(Math.abs(dx), Math.abs(dy)) / 100, 1);
-    card.querySelectorAll(".status-indicator").forEach((s) => {
-      s.style.opacity = s.classList.contains(`ind-${dir}`) ? strength : 0;
-    });
+    card._drag = { dx, dy };
+    if (card._frame) return;
+    card._frame = requestAnimationFrame(() => {
+      card._frame = null;
+      if (!card._drag) return;
+      const { dx, dy } = card._drag;
+      card.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx * 0.05}deg)`;
+      const dir = this.directionOf(dx, dy);
+      const strength = Math.min(Math.max(Math.abs(dx), Math.abs(dy)) / 100, 1);
+      card._stamps.forEach((s) => {
+        s.style.opacity = s.classList.contains(`ind-${dir}`) ? strength : 0;
+      });
 
-    const next = this.cardStack.querySelector(".card.is-next");
-    if (next) {
-      const p = Math.min(Math.hypot(dx, dy) / 150, 1);
-      next.style.transform = `translateY(${(1 - p) * 12}px) scale(${0.95 + 0.05 * p})`;
-    }
+      const next = card._next;
+      if (next) {
+        const p = Math.min(Math.hypot(dx, dy) / 150, 1);
+        next.style.transform = `translateY(${(1 - p) * 12}px) scale(${0.95 + 0.05 * p})`;
+      }
+    });
   }
 
   resetCardPosition(card) {
+    cancelAnimationFrame(card._frame);
+    card._frame = null;
+    card._drag = null;
     card.style.transform = "";
     card.querySelectorAll(".status-indicator").forEach((s) => {
       s.style.opacity = "";
@@ -1113,6 +1143,8 @@ class aniswipe {
     const { status, x, y } = SWIPES[dir];
 
     card._ac?.abort();
+    cancelAnimationFrame(card._frame);
+    card._drag = null;
     card.classList.remove("is-top", "dragging");
     card.classList.add("removed");
     card.setAttribute("aria-hidden", "true");
@@ -1203,7 +1235,6 @@ class aniswipe {
 
   generateBackgroundMosaic(list) {
     if (!list.length) return;
-    this.mosaicMode = this.mode;
     this.mosaicContainer.innerHTML = "";
     const shuffled = [...list].sort(() => 0.5 - Math.random());
     shuffled.slice(0, 20).forEach((item, index) => {
