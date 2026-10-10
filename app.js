@@ -11,7 +11,7 @@ const TRANSLATIONS = {
     applyFilters: "Aplicar filtros",
     clear: "Limpiar",
     loading: "Cargando",
-    noResults: "¡No se encontraron resultados!",
+    noResults: "Nada con estos filtros",
     error: "Error",
     retry: "Reintentar",
     rateLimited: "AniList está saturado. Reintentando en {s}s…",
@@ -70,8 +70,9 @@ const TRANSLATIONS = {
     chapters: "{n} caps",
     copied: "Título copiado",
     // Estados finales
-    doneTitle: "¡Lo has repasado todo!",
-    doneText: "No quedan más títulos con estos filtros.",
+    doneTitle: "Se acabó la baraja",
+    doneText:
+      "No quedan títulos con estos filtros. Prueba con otros o repasa tu lista.",
     doneFilters: "Cambiar filtros",
     // Detalle
     copyTitle: "Copiar título",
@@ -91,7 +92,7 @@ const TRANSLATIONS = {
     optSkip: "Saltado",
     search: "Buscar…",
     remove: "Quitar de la lista",
-    listEmpty: "Aún no hay nada aquí. ¡Empieza a deslizar!",
+    listEmpty: "Aquí no hay nada todavía.",
     searchEmpty: "Sin coincidencias.",
     showMore: "Mostrar más ({n})",
     removed: "«{title}» quitado de tu lista",
@@ -129,7 +130,7 @@ const TRANSLATIONS = {
     applyFilters: "Apply filters",
     clear: "Clear",
     loading: "Loading",
-    noResults: "No results found!",
+    noResults: "Nothing for these filters",
     error: "Error",
     retry: "Retry",
     rateLimited: "AniList is busy. Retrying in {s}s…",
@@ -188,8 +189,9 @@ const TRANSLATIONS = {
     chapters: "{n} ch",
     copied: "Title copied",
     // End states
-    doneTitle: "You've seen it all!",
-    doneText: "There are no more titles for these filters.",
+    doneTitle: "That's the whole deck",
+    doneText:
+      "Nothing left for these filters. Try others or go through your list.",
     doneFilters: "Change filters",
     // Details
     copyTitle: "Copy title",
@@ -209,7 +211,7 @@ const TRANSLATIONS = {
     optSkip: "Skipped",
     search: "Search…",
     remove: "Remove from list",
-    listEmpty: "Nothing here yet. Start swiping!",
+    listEmpty: "Nothing here yet.",
     searchEmpty: "No matches.",
     showMore: "Show more ({n})",
     removed: "“{title}” removed from your list",
@@ -439,7 +441,7 @@ class aniswipe {
     this.filterCount = document.getElementById("filter-count");
     this.mosaicContainer = document.getElementById("background-mosaic");
     this.btnFilter = document.getElementById("btn-filters");
-    this.btnLang = document.getElementById("btn-lang");
+    this.langBtns = document.querySelectorAll("[data-lang]");
     this.modeBtns = document.querySelectorAll(".mode-btn");
     this.filterSheet = document.getElementById("filter-sheet");
     this.listSheet = document.getElementById("list-sheet");
@@ -482,19 +484,24 @@ class aniswipe {
   // --- LÓGICA DE IDIOMA ---
   initLanguage() {
     this.updateStaticText();
-    this.btnLang.onclick = () => {
-      this.lang = this.lang === "es" ? "en" : "es";
-      localStorage.setItem(STORAGE.lang, this.lang);
-      this.updateStaticText();
+    this.langBtns.forEach((btn) => {
+      btn.onclick = () => this.setLanguage(btn.dataset.lang);
+    });
+  }
 
-      // Redibuja las cartas para traducir sellos y géneros
-      this.cardStack
-        .querySelectorAll(".card:not(.removed)")
-        .forEach((c) => c.remove());
-      this.renderCards();
-      if (this.filterSheet.open) this.renderFilters();
-      if (this.listSheet.open) this.renderList();
-    };
+  setLanguage(lang) {
+    if (lang === this.lang) return;
+    this.lang = lang;
+    localStorage.setItem(STORAGE.lang, this.lang);
+    this.updateStaticText();
+
+    // Redibuja las cartas para traducir sellos y géneros
+    this.cardStack
+      .querySelectorAll(".card:not(.removed)")
+      .forEach((c) => c.remove());
+    this.renderCards();
+    if (this.filterSheet.open) this.renderFilters();
+    if (this.listSheet.open) this.renderList();
   }
 
   // Función helper para traducir
@@ -517,7 +524,11 @@ class aniswipe {
 
   updateStaticText() {
     document.documentElement.lang = this.lang;
-    this.btnLang.textContent = this.lang.toUpperCase();
+    this.langBtns.forEach((btn) => {
+      const active = btn.dataset.lang === this.lang;
+      btn.classList.toggle("active", active);
+      btn.setAttribute("aria-pressed", active);
+    });
 
     document.querySelectorAll("[data-i18n]").forEach((el) => {
       el.textContent = this.t(el.dataset.i18n);
@@ -884,6 +895,7 @@ class aniswipe {
     if (this.lastError) {
       state.innerHTML = `
         <div class="state-box">
+          <div class="state-icon" aria-hidden="true">!?</div>
           <p class="state-title">${this.t("error")}</p>
           <p class="state-text">${escapeHTML(this.lastError.message)}</p>
           <button class="btn-pill" data-action="retry">${this.t("retry")}</button>
@@ -892,7 +904,7 @@ class aniswipe {
       const noResults = this.fetchedCount === 0;
       state.innerHTML = `
         <div class="state-box">
-          <div class="state-icon">✦</div>
+          <div class="state-icon" aria-hidden="true">${noResults ? "?" : "完"}</div>
           <p class="state-title">${noResults ? this.t("noResults") : this.t("doneTitle")}</p>
           ${noResults ? "" : `<p class="state-text">${this.t("doneText")}</p>`}
           <div class="state-actions">
@@ -945,7 +957,7 @@ class aniswipe {
         ${item.titleEn ? `<p class="card-subtitle">${escapeHTML(item.titleEn)}</p>` : ""}
         <div class="card-meta">
           ${badges.map((b) => `<span class="badge">${escapeHTML(b)}</span>`).join("")}
-          ${item.score ? `<span class="score">★ ${item.score.toFixed(1)}</span>` : ""}
+          ${item.score ? `<span class="score"><span class="star">★</span> ${item.score.toFixed(1)}</span>` : ""}
           ${airing}
         </div>
         ${
@@ -1299,7 +1311,7 @@ class aniswipe {
           <p class="detail-alt"></p>
           <div class="card-meta">
             ${meta.map((m) => `<span class="badge">${escapeHTML(m)}</span>`).join("")}
-            ${item.score ? `<span class="score">★ ${item.score.toFixed(1)}</span>` : ""}
+            ${item.score ? `<span class="score"><span class="star">★</span> ${item.score.toFixed(1)}</span>` : ""}
           </div>
           <p class="detail-studio"></p>
         </div>

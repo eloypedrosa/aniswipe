@@ -11,8 +11,17 @@
       name="description"
       content="Build your anime & manga list in minutes: swipe through popular titles from AniList and export them to MyAnimeList or AniList."
     />
-    <meta name="theme-color" content="#0f0f13" />
-    <meta name="color-scheme" content="dark" />
+    <meta
+      name="theme-color"
+      content="#f2ead9"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content="#171411"
+      media="(prefers-color-scheme: dark)"
+    />
+    <meta name="color-scheme" content="light dark" />
 
     <!-- PWA -->
     <link rel="manifest" href="manifest.webmanifest" />
@@ -21,10 +30,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="aniswipe" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -42,13 +48,32 @@
 
     <link rel="preconnect" href="https://graphql.anilist.co" crossorigin />
     <link rel="preconnect" href="https://s4.anilist.co" />
-    <link rel="stylesheet" href="style.css?v=3" />
-    <script src="app.js?v=3" defer></script>
+    <link
+      rel="preload"
+      href="fonts/dela-gothic-one-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="fonts/zen-kaku-gothic-new-latin-700.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="style.css?v=4" />
+    <script src="app.js?v=4" defer></script>
   </head>
   <body>
     <div id="background-mosaic" aria-hidden="true"></div>
 
     <header>
+      <div class="brand">
+        <span class="brand-name">aniswipe</span>
+        <span class="brand-kana" aria-hidden="true">アニスワイプ</span>
+      </div>
+
       <div class="mode-switch">
         <button class="mode-btn active" data-mode="anime">Anime</button>
         <button class="mode-btn" data-mode="manga">Manga</button>
@@ -92,15 +117,6 @@
           </svg>
           <span class="btn-label" data-i18n="filters">Filtros</span>
           <span class="count" id="filter-count" hidden>0</span>
-        </button>
-
-        <button
-          class="header-btn btn-lang"
-          id="btn-lang"
-          data-i18n-title="language"
-          title="Idioma"
-        >
-          ES
         </button>
       </div>
     </header>
@@ -175,6 +191,15 @@
       <div class="sheet-panel">
         <div class="sheet-header">
           <h2 class="sheet-title" data-i18n="filterTitle">Filtrar</h2>
+          <div
+            class="lang-switch"
+            role="group"
+            data-i18n-aria="language"
+            aria-label="Idioma"
+          >
+            <button data-lang="es">ES</button>
+            <button data-lang="en">EN</button>
+          </div>
           <button
             class="icon-btn"
             data-close

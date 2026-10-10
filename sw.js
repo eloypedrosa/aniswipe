@@ -1,7 +1,7 @@
 // Service worker: permite instalar la app y abrirla sin conexión.
 // Estrategia "red primero": cada despliegue se ve al instante y la caché
 // solo se usa cuando no hay conexión. Las peticiones a AniList no se tocan.
-const CACHE = "aniswipe-v3";
+const CACHE = "aniswipe-v4";
 const SHELL = [
   "./",
   "index.html",
@@ -11,6 +11,12 @@ const SHELL = [
   "gto_anime.png",
   "icon-192.png",
   "icon-512.png",
+  "fonts/dela-gothic-one-latin.woff2",
+  "fonts/dela-gothic-one-kana.woff2",
+  "fonts/dela-gothic-one-kanji.woff2",
+  "fonts/zen-kaku-gothic-new-latin-400.woff2",
+  "fonts/zen-kaku-gothic-new-latin-700.woff2",
+  "fonts/zen-kaku-gothic-new-latin-900.woff2",
 ];
 
 self.addEventListener("install", (event) => {

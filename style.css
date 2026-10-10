@@ -1,30 +1,95 @@
+/* --- FUENTES (autoalojadas, OFL: ver fonts/OFL.txt) --- */
+@font-face {
+  font-family: "Dela Gothic One";
+  src: url("fonts/dela-gothic-one-latin.woff2") format("woff2");
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Dela Gothic One";
+  src: url("fonts/dela-gothic-one-kana.woff2") format("woff2");
+  font-display: swap;
+  unicode-range: U+3001-3002, U+3041-30FF;
+}
+@font-face {
+  font-family: "Dela Gothic One";
+  src: url("fonts/dela-gothic-one-kanji.woff2") format("woff2");
+  font-display: swap;
+  unicode-range: U+5B8C; /* 完 */
+}
+@font-face {
+  font-family: "Zen Kaku Gothic New";
+  src: url("fonts/zen-kaku-gothic-new-latin-400.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F, U+20AC, U+2122;
+}
+@font-face {
+  font-family: "Zen Kaku Gothic New";
+  src: url("fonts/zen-kaku-gothic-new-latin-700.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F, U+20AC, U+2122;
+}
+@font-face {
+  font-family: "Zen Kaku Gothic New";
+  src: url("fonts/zen-kaku-gothic-new-latin-900.woff2") format("woff2");
+  font-weight: 900;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F, U+20AC, U+2122;
+}
+
+/* --- PAPEL Y TINTA --- */
 :root {
-  --c-bg: #0f0f13;
-  --c-card: #1e1e24;
-  --c-surface: #25252b;
-  --c-line: rgba(255, 255, 255, 0.08);
-  --c-text: #ffffff;
-  --c-sub: #a0a0b0;
-  --c-accent: #ff6b6b;
-  --c-manga: #34d399;
-  --c-love: #e94057;
-  --c-nope: #f27121;
-  --c-super: #3b82f6;
-  --c-drop: #8b5cf6;
-  --c-gold: #facc15;
+  --paper: #f2ead9;
+  --paper-2: #e7dcc5;
+  --paper-3: #fbf7ee;
+  --ink: #1a1612;
+  --ink-2: #5d5348;
+  --shade: #1a1612;
+  --dots: rgba(26, 22, 18, 0.12);
+  /* Tintas tipo risografía */
+  --red: #d93a2b;
+  --blue: #2a55c9;
+  --purple: #7b4bb3;
+  --orange: #df7f12;
+  --green: #12805c;
+  --gold: #c58a06;
   /* Color del modo activo (anime por defecto) */
-  --c-mode: var(--c-accent);
-  --c-mode-ink: #ffffff;
-  --c-mode-soft: rgba(255, 107, 107, 0.15);
-  --shadow-soft: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
-  --font-main: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mode: var(--red);
+  --on-mode: #fbf7ee;
+  --font-display: "Dela Gothic One", "Arial Black", Impact, sans-serif;
+  --font-main:
+    "Zen Kaku Gothic New", "Hiragino Sans", "Segoe UI", Roboto, sans-serif;
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #171411;
+    --paper-2: #262019;
+    --paper-3: #1f1a15;
+    --ink: #efe6d3;
+    --ink-2: #a99d8b;
+    --shade: #000000;
+    --dots: rgba(239, 230, 211, 0.06);
+    --red: #f05a45;
+    --blue: #6a8ff2;
+    --purple: #ac85e6;
+    --orange: #f0a040;
+    --green: #2fbf8a;
+    --gold: #f2bf3a;
+    --on-mode: #171411;
+    color-scheme: dark;
+  }
 }
 
 body.mode-manga {
-  --c-mode: var(--c-manga);
-  --c-mode-ink: #0f0f13;
-  --c-mode-soft: rgba(52, 211, 153, 0.15);
+  --mode: var(--green);
 }
 
 * {
@@ -34,19 +99,21 @@ body.mode-manga {
   -webkit-tap-highlight-color: transparent;
 }
 
-button {
+button,
+input,
+select {
   font: inherit;
   color: inherit;
 }
 
 :focus-visible {
-  outline: 2px solid var(--c-mode);
+  outline: 3px solid var(--mode);
   outline-offset: 2px;
 }
 
 body {
-  background-color: var(--c-bg);
-  color: var(--c-text);
+  background-color: var(--paper);
+  color: var(--ink);
   font-family: var(--font-main);
   overflow: hidden;
   width: 100%;
@@ -57,16 +124,35 @@ body {
   overscroll-behavior: none;
 }
 
+/* Trama de puntos (screentone) sobre todo el fondo */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(var(--dots) 1px, transparent 1.3px);
+  background-size: 7px 7px;
+}
+
+/* Portadas del fondo impresas como papel de periódico */
 #background-mosaic {
   position: fixed;
   inset: 0;
   z-index: -1;
-  opacity: 0.15;
+  opacity: 0.14;
   overflow: hidden;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  filter: blur(8px) grayscale(0.8);
+  filter: grayscale(1) contrast(1.35);
+  mix-blend-mode: multiply;
   pointer-events: none;
+}
+@media (prefers-color-scheme: dark) {
+  #background-mosaic {
+    opacity: 0.1;
+    mix-blend-mode: screen;
+  }
 }
 .mosaic-img {
   width: 100%;
@@ -79,9 +165,8 @@ body {
 /* --- CABECERA --- */
 header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 10px 15px;
+  padding: 10px 14px;
   padding-top: calc(10px + env(safe-area-inset-top));
   z-index: 20;
   flex-shrink: 0;
@@ -89,98 +174,153 @@ header {
   gap: 10px;
 }
 
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-shrink: 0;
+  user-select: none;
+}
+.brand-name {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+.brand-name::after {
+  content: ".";
+  color: var(--mode);
+}
+.brand-kana {
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  color: var(--ink-2);
+  letter-spacing: 0.1em;
+}
+@media (max-width: 520px) {
+  .brand-kana {
+    display: none;
+  }
+}
+@media (max-width: 400px) {
+  header {
+    gap: 8px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .brand-name {
+    font-size: 1rem;
+  }
+  .mode-btn {
+    padding: 4px 7px;
+    letter-spacing: 0.04em;
+  }
+  .header-actions {
+    gap: 6px;
+  }
+}
+@media (max-width: 340px) {
+  .brand {
+    display: none;
+  }
+}
+
 .mode-switch {
   display: flex;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 4px;
-  border-radius: 20px;
-  backdrop-filter: blur(10px);
+  border: 2px solid var(--ink);
+  border-radius: 5px;
+  background: var(--paper-3);
+  padding: 2px;
+  gap: 2px;
   flex-shrink: 0;
 }
 .mode-btn {
   border: none;
   background: transparent;
-  color: #aaa;
-  padding: 5px 12px;
-  border-radius: 16px;
-  font-size: 0.8rem;
-  font-weight: 700;
+  color: var(--ink-2);
+  padding: 4px 9px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: 0.3s;
+  transition:
+    background 0.2s,
+    color 0.2s;
 }
 .mode-btn.active {
-  background: var(--c-mode);
-  color: var(--c-mode-ink);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  background: var(--mode);
+  color: var(--on-mode);
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  margin-left: auto;
   min-width: 0;
 }
 .header-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: white;
-  height: 30px;
-  padding: 0 10px;
-  border-radius: 20px;
+  background: var(--paper-3);
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  height: 32px;
+  padding: 0 9px;
+  border-radius: 5px;
   font-size: 0.75rem;
+  font-weight: 700;
   cursor: pointer;
-  backdrop-filter: blur(10px);
-  transition: 0.2s;
+  box-shadow: 2px 2px 0 var(--shade);
+  transition:
+    transform 0.1s,
+    box-shadow 0.1s;
   display: flex;
   align-items: center;
   gap: 5px;
   white-space: nowrap;
 }
-.header-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+.header-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 var(--shade);
 }
 .header-btn svg {
-  width: 14px;
-  height: 14px;
+  width: 15px;
+  height: 15px;
   flex-shrink: 0;
 }
 .header-btn.active {
-  color: var(--c-mode);
-  background: var(--c-mode-soft);
+  background: var(--mode);
+  color: var(--on-mode);
 }
 .header-btn .count {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 10px;
-  padding: 1px 6px;
-  font-size: 0.7rem;
-  font-weight: 700;
+  background: var(--ink);
+  color: var(--paper-3);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 0.68rem;
+  font-weight: 900;
   font-variant-numeric: tabular-nums;
 }
 .header-btn.active .count {
-  background: var(--c-mode);
-  color: var(--c-mode-ink);
-}
-.btn-lang {
-  font-weight: 800;
-  min-width: 35px;
-  justify-content: center;
+  background: var(--on-mode);
+  color: var(--mode);
 }
 
-@media (max-width: 420px) {
+@media (max-width: 560px) {
   .header-btn .btn-label {
     display: none;
   }
 }
 
-/* --- CARTAS --- */
+/* --- CARTAS (viñetas) --- */
 #card-container {
   flex: 1;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  perspective: 1000px;
-  margin: 5px 0;
+  margin: 4px 0 8px;
   width: 100%;
   min-height: 0;
   overflow: hidden;
@@ -188,10 +328,10 @@ header {
 
 #card-stack {
   position: relative;
-  width: 90%;
-  max-width: 360px;
+  width: 88%;
+  max-width: 350px;
   height: 100%;
-  max-height: 540px;
+  max-height: 530px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -202,9 +342,10 @@ header {
   width: 100%;
   height: 100%;
   max-height: 100%;
-  background: var(--c-card);
-  border-radius: 24px;
-  box-shadow: var(--shadow-soft);
+  background: var(--paper-2);
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  box-shadow: 6px 6px 0 var(--shade);
   overflow: hidden;
   transform-origin: 50% 100%;
   user-select: none;
@@ -221,26 +362,25 @@ header {
   cursor: grabbing;
   transition: none;
 }
-/* La siguiente carta asoma detrás */
+/* La siguiente viñeta asoma detrás, desvaída */
 .card.is-next {
   z-index: 1;
   transform: translateY(12px) scale(0.95);
   pointer-events: none;
   transition: transform 0.35s var(--ease-out);
 }
-/* Oscurece la carta de detrás (más barato que filter: brightness) */
 .card::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: #000;
+  background: var(--paper);
   opacity: 0;
   pointer-events: none;
   z-index: 7;
   transition: opacity 0.35s ease;
 }
 .card.is-next::after {
-  opacity: 0.45;
+  opacity: 0.6;
 }
 .card.removed {
   z-index: 3;
@@ -261,64 +401,70 @@ header {
   opacity: 1;
 }
 
+/* Sombreado de trama en la parte baja de la portada */
 .card-gradient {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 65%;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.95) 0%,
-    rgba(0, 0, 0, 0.7) 40%,
-    transparent 100%
+  height: 60%;
+  background-image: radial-gradient(
+    rgba(0, 0, 0, 0.55) 1.1px,
+    transparent 1.5px
   );
+  background-size: 5px 5px;
+  -webkit-mask-image: linear-gradient(to top, #000 15%, transparent);
+  mask-image: linear-gradient(to top, #000 15%, transparent);
   pointer-events: none;
 }
 
 .card-info-btn {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(0, 0, 0, 0.45);
-  color: white;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 5px;
+  border: 2px solid var(--ink);
+  background: var(--paper-3);
+  color: var(--ink);
+  box-shadow: 2px 2px 0 var(--shade);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 6;
-  transition: background 0.2s;
 }
-.card-info-btn:hover {
-  background: rgba(0, 0, 0, 0.6);
+.card-info-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
 }
 .card-info-btn svg {
   width: 18px;
   height: 18px;
 }
-.card.is-next .card-info-btn {
-  opacity: 0;
-}
 
+/* Recuadro de texto, como los de narración de un manga */
 .card-info {
   position: absolute;
-  bottom: 25px;
-  left: 20px;
-  right: 20px;
-  color: white;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  padding: 11px 13px 12px;
+  background: var(--paper-3);
+  color: var(--ink);
+  border: 2.5px solid var(--ink);
+  border-radius: 4px;
+  box-shadow: 3px 3px 0 var(--shade);
   pointer-events: none;
   z-index: 5;
 }
 .card-title {
-  font-size: 1.6rem;
-  font-weight: 800;
-  margin-bottom: 4px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  line-height: 1.1;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.3rem;
+  line-height: 1.15;
+  margin-bottom: 3px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -331,9 +477,9 @@ header {
   opacity: 0.6;
 }
 .card-subtitle {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 10px;
+  font-size: 0.8rem;
+  color: var(--ink-2);
+  margin-bottom: 8px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -345,77 +491,89 @@ header {
 .card-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  font-size: 0.8rem;
+  gap: 5px;
   align-items: center;
 }
 .badge {
-  background: rgba(255, 255, 255, 0.15);
-  padding: 3px 8px;
-  border-radius: 10px;
-  font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2px 6px;
+  border: 1.5px solid var(--ink);
+  border-radius: 3px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.3;
 }
 .badge-live {
-  background: rgba(52, 211, 153, 0.2);
-  border-color: rgba(52, 211, 153, 0.4);
-  color: #6ee7b7;
-}
-.score {
-  color: var(--c-gold);
-  font-weight: bold;
-  display: flex;
+  border-color: var(--red);
+  color: var(--red);
+  display: inline-flex;
   align-items: center;
   gap: 4px;
 }
+.badge-live::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.score {
+  font-weight: 900;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-variant-numeric: tabular-nums;
+}
+.score .star {
+  color: var(--gold);
+}
 .card-genres {
-  margin-top: 8px;
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.65);
+  margin-top: 7px;
+  font-size: 0.74rem;
+  color: var(--ink-2);
 }
 
+/* Sellos (hanko) que aparecen al arrastrar */
 .status-indicator {
   position: absolute;
-  padding: 8px 16px;
-  border: 3px solid;
-  border-radius: 12px;
-  font-size: 1.5rem;
-  font-weight: 800;
+  padding: 5px 12px 6px;
+  border: 5px double currentColor;
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  background: var(--paper-3);
   opacity: 0;
   z-index: 10;
   pointer-events: none;
-  background: rgba(0, 0, 0, 0.55);
   white-space: nowrap;
 }
 .ind-up {
-  top: 40px;
+  top: 46px;
   left: 50%;
-  transform: translateX(-50%);
-  border-color: var(--c-super);
-  color: var(--c-super);
+  transform: translateX(-50%) rotate(-4deg);
+  color: var(--blue);
 }
 .ind-down {
-  bottom: 140px;
+  bottom: 150px;
   left: 50%;
-  transform: translateX(-50%);
-  border-color: var(--c-drop);
-  color: var(--c-drop);
+  transform: translateX(-50%) rotate(3deg);
+  color: var(--purple);
 }
 .ind-right {
-  top: 40px;
-  left: 30px;
-  border-color: var(--c-love);
-  color: var(--c-love);
-  transform: rotate(-15deg);
+  top: 46px;
+  left: 22px;
+  color: var(--red);
+  transform: rotate(-14deg);
 }
 .ind-left {
-  top: 40px;
-  right: 30px;
-  border-color: var(--c-nope);
-  color: var(--c-nope);
-  transform: rotate(15deg);
+  top: 46px;
+  right: 22px;
+  color: var(--orange);
+  transform: rotate(14deg);
 }
 
 /* --- ESTADOS: cargando / fin / error --- */
@@ -432,50 +590,51 @@ header {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 24px;
+  border: 3px solid var(--ink);
+  border-radius: 6px;
+  box-shadow: 6px 6px 0 var(--shade);
   overflow: hidden;
-  background: var(--c-card);
-}
-.skeleton::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    100deg,
-    transparent 20%,
-    rgba(255, 255, 255, 0.05) 45%,
-    transparent 70%
-  );
-  animation: shimmer 1.4s infinite;
+  background-color: var(--paper-2);
+  background-image: radial-gradient(var(--dots) 1.2px, transparent 1.6px);
+  background-size: 6px 6px;
+  animation: tone 1.2s linear infinite;
 }
 .skeleton-lines {
   position: absolute;
-  left: 20px;
-  right: 20px;
-  bottom: 28px;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  height: 92px;
+  border: 2.5px solid var(--ink);
+  border-radius: 4px;
+  background: var(--paper-3);
+  padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 .skeleton-lines span {
-  height: 22px;
-  width: 75%;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.07);
+  height: 18px;
+  width: 70%;
+  border-radius: 3px;
+  background: var(--paper-2);
 }
 .skeleton-lines span + span {
-  height: 14px;
-  width: 45%;
+  height: 12px;
+  width: 40%;
 }
 .state-wait {
   position: absolute;
-  top: 50%;
-  left: 20px;
-  right: 20px;
-  transform: translateY(-50%);
-  color: var(--c-sub);
+  top: 40%;
+  left: 24px;
+  right: 24px;
+  color: var(--ink);
+  font-weight: 700;
   font-size: 0.9rem;
   line-height: 1.5;
+}
+.state-wait:empty {
+  display: none;
 }
 .state-box {
   display: flex;
@@ -486,23 +645,27 @@ header {
   max-width: 320px;
 }
 .state-icon {
-  font-size: 2.2rem;
-  color: var(--c-mode);
+  font-family: var(--font-display);
+  font-size: 4.5rem;
+  line-height: 1;
+  color: var(--mode);
+  margin-bottom: 4px;
 }
 .state-title {
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  line-height: 1.2;
 }
 .state-text {
-  color: var(--c-sub);
+  color: var(--ink-2);
   font-size: 0.9rem;
   line-height: 1.5;
   word-break: break-word;
 }
 .state-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 10px;
+  margin-top: 10px;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -511,23 +674,27 @@ header {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 18px;
-  border-radius: 999px;
-  border: none;
-  background: var(--c-mode);
-  color: var(--c-mode-ink);
-  font-weight: 700;
-  font-size: 0.85rem;
+  padding: 9px 16px;
+  border-radius: 5px;
+  border: 2px solid var(--ink);
+  background: var(--mode);
+  color: var(--on-mode);
+  box-shadow: 3px 3px 0 var(--shade);
+  font-weight: 900;
+  font-size: 0.82rem;
   cursor: pointer;
   text-decoration: none;
-  transition: filter 0.2s;
+  transition:
+    transform 0.1s,
+    box-shadow 0.1s;
 }
-.btn-pill:hover {
-  filter: brightness(1.1);
+.btn-pill:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
 }
 .btn-pill.ghost {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--c-text);
+  background: var(--paper-3);
+  color: var(--ink);
 }
 
 /* --- CONTROLES --- */
@@ -535,7 +702,7 @@ header {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 15px;
+  gap: 18px;
   padding: 6px 0 32px 0;
   padding-bottom: calc(30px + env(safe-area-inset-bottom));
   z-index: 20;
@@ -544,20 +711,20 @@ header {
 }
 
 .btn-action {
-  width: 55px;
-  height: 55px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  border: none;
-  background: var(--c-surface);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  border: 2.5px solid var(--ink);
+  background: var(--paper-3);
+  box-shadow: 3px 3px 0 var(--shade);
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
   transition:
-    transform 0.2s,
-    background 0.2s;
-  color: white;
+    transform 0.1s,
+    box-shadow 0.1s;
+  color: var(--ink);
   position: relative;
   flex-shrink: 0;
   -webkit-touch-callout: none;
@@ -566,77 +733,77 @@ header {
 .btn-action svg {
   width: 24px;
   height: 24px;
-  stroke-width: 2.5;
+  stroke-width: 3;
   pointer-events: none;
 }
-.btn-action:hover {
-  background: #2f2f37;
-}
 .btn-action:active {
-  transform: scale(0.9);
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--shade);
 }
 
 .btn-action.small {
   width: 42px;
   height: 42px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #aaa;
+  border-width: 2px;
+  box-shadow: 2px 2px 0 var(--shade);
+  color: var(--ink-2);
 }
 .btn-action.small svg {
-  width: 20px;
-  height: 20px;
+  width: 19px;
+  height: 19px;
 }
 
 .btn-caption {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 7px);
   left: 50%;
   transform: translateX(-50%);
-  font-size: 0.65rem;
-  font-weight: 600;
-  color: var(--c-sub);
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ink-2);
   white-space: nowrap;
   pointer-events: none;
 }
 
 .btn-love {
-  color: var(--c-love);
+  background: var(--red);
+  color: var(--on-mode);
 }
 .btn-love svg {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   fill: currentColor;
 }
-
 .btn-skip {
-  color: var(--c-nope);
+  color: var(--orange);
 }
 .btn-plan {
-  color: var(--c-super);
+  color: var(--blue);
 }
 .btn-drop {
-  color: var(--c-drop);
+  color: var(--purple);
 }
 
 @media (max-width: 380px) or (max-height: 700px) {
   .card-title {
-    font-size: 1.4rem;
+    font-size: 1.15rem;
   }
   .controls {
-    gap: 10px;
+    gap: 12px;
     padding-bottom: calc(26px + env(safe-area-inset-bottom));
   }
   .btn-action {
-    width: 48px;
-    height: 48px;
+    width: 50px;
+    height: 50px;
   }
-
   .btn-action.small {
     width: 38px;
     height: 38px;
   }
   #card-stack {
-    max-height: 480px;
+    max-height: 470px;
   }
 }
 @media (max-width: 380px) {
@@ -644,7 +811,8 @@ header {
     gap: 14px;
   }
   .btn-caption {
-    font-size: 0.6rem;
+    font-size: 0.54rem;
+    letter-spacing: 0;
   }
 }
 @media (max-height: 620px) {
@@ -668,7 +836,7 @@ dialog.sheet {
   max-width: none;
   max-height: none;
   background: transparent;
-  color: var(--c-text);
+  color: var(--ink);
   overflow: hidden;
 }
 dialog.sheet[open] {
@@ -677,43 +845,51 @@ dialog.sheet[open] {
   align-items: flex-end;
 }
 dialog.sheet::backdrop {
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(5px);
+  background-color: rgba(26, 22, 18, 0.55);
+  background-image: radial-gradient(rgba(0, 0, 0, 0.35) 1px, transparent 1.4px);
+  background-size: 5px 5px;
 }
 
 .sheet-panel {
-  background: var(--c-card);
+  background: var(--paper-3);
   width: 100%;
   max-width: 520px;
   max-height: 88vh;
   max-height: 88dvh;
-  border-radius: 20px 20px 0 0;
+  border: 3px solid var(--ink);
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
   display: flex;
   flex-direction: column;
   animation: slideUp 0.3s var(--ease-out);
   padding-bottom: env(safe-area-inset-bottom);
-  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
 }
 @media (min-width: 600px) {
   dialog.sheet[open] {
     align-items: center;
   }
   .sheet-panel {
-    border-radius: 20px;
+    border-bottom: 3px solid var(--ink);
+    border-radius: 8px;
+    box-shadow: 8px 8px 0 var(--shade);
     padding-bottom: 0;
   }
 }
 
 .sheet-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 20px 20px 14px;
+  gap: 10px;
+  padding: 18px 20px 14px;
   flex-shrink: 0;
 }
+.sheet-header > :last-child {
+  margin-left: auto;
+}
 .sheet-title {
-  font-size: 1.2rem;
-  font-weight: bold;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.25rem;
 }
 .sheet-body {
   overflow-y: auto;
@@ -723,29 +899,56 @@ dialog.sheet::backdrop {
   min-height: 0;
 }
 .sheet-footer {
-  padding: 14px 20px 20px;
-  border-top: 1px solid var(--c-line);
+  padding: 14px 20px 18px;
+  border-top: 2px solid var(--ink);
   flex-shrink: 0;
 }
 
 .icon-btn {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.06);
-  color: #aaa;
+  border-radius: 5px;
+  border: 2px solid var(--ink);
+  background: var(--paper-3);
+  color: var(--ink);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 900;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: 0.2s;
 }
 .icon-btn:hover {
-  background: rgba(255, 255, 255, 0.14);
-  color: white;
+  background: var(--paper-2);
+}
+
+/* Selector de idioma (dentro de Filtros) */
+.lang-switch {
+  display: flex;
+  border: 2px solid var(--ink);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-left: auto;
+}
+.lang-switch + .icon-btn {
+  margin-left: 0;
+}
+.lang-switch button {
+  border: none;
+  background: var(--paper-3);
+  padding: 4px 9px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  cursor: pointer;
+  color: var(--ink-2);
+}
+.lang-switch button + button {
+  border-left: 2px solid var(--ink);
+}
+.lang-switch button.active {
+  background: var(--ink);
+  color: var(--paper-3);
 }
 
 /* --- FILTROS --- */
@@ -754,41 +957,49 @@ dialog.sheet::backdrop {
 }
 .filter-label {
   display: block;
-  color: var(--c-sub);
-  margin-bottom: 8px;
-  font-size: 0.9rem;
+  margin-bottom: 9px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
 }
 .filter-label small {
-  font-size: 0.75rem;
-  opacity: 0.7;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .chips-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 7px;
 }
 .chip {
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 20px;
-  font-size: 0.85rem;
+  padding: 6px 12px;
+  background: var(--paper-3);
+  border: 2px solid var(--ink);
+  border-radius: 5px;
+  font-size: 0.82rem;
+  font-weight: 700;
   cursor: pointer;
-  border: 1px solid transparent;
-  transition: 0.2s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 .chip:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--paper-2);
 }
 .chip.selected {
-  background: var(--c-mode);
-  color: var(--c-mode-ink);
-  border-color: var(--c-mode);
-  font-weight: 700;
+  background: var(--mode);
+  color: var(--on-mode);
+  box-shadow: 2px 2px 0 var(--shade);
 }
 .chip.static {
   cursor: default;
-  padding: 5px 12px;
-  font-size: 0.8rem;
+  padding: 3px 9px;
+  font-size: 0.76rem;
+  border-width: 1.5px;
 }
 
 .filter-footer {
@@ -797,22 +1008,31 @@ dialog.sheet::backdrop {
 }
 .btn-apply {
   flex: 1;
-  padding: 15px;
-  background: var(--c-mode);
-  border: none;
-  border-radius: 12px;
-  color: var(--c-mode-ink);
-  font-weight: bold;
-  font-size: 1rem;
+  padding: 13px;
+  background: var(--mode);
+  color: var(--on-mode);
+  border: 2.5px solid var(--ink);
+  border-radius: 6px;
+  box-shadow: 3px 3px 0 var(--shade);
+  font-weight: 900;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   cursor: pointer;
 }
 .btn-secondary {
-  padding: 15px 20px;
-  background: rgba(255, 255, 255, 0.08);
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
+  padding: 13px 18px;
+  background: var(--paper-3);
+  border: 2.5px solid var(--ink);
+  border-radius: 6px;
+  box-shadow: 3px 3px 0 var(--shade);
+  font-weight: 900;
   cursor: pointer;
+}
+.btn-apply:active,
+.btn-secondary:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
 }
 
 /* --- MI LISTA --- */
@@ -831,34 +1051,45 @@ dialog.sheet::backdrop {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 10px 4px;
-  border-radius: 12px;
-  border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.05);
+  gap: 1px;
+  padding: 8px 2px 7px;
+  border-radius: 5px;
+  border: 2px solid var(--ink);
+  background: var(--paper-3);
   cursor: pointer;
-  transition: 0.2s;
   min-width: 0;
 }
 .list-tab-count {
-  font-size: 1.15rem;
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
 .list-tab-label {
-  font-size: 0.7rem;
-  color: var(--c-sub);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--ink-2);
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.list-tab.active {
-  background: var(--c-mode-soft);
-  border-color: var(--c-mode);
+@media (max-width: 400px) {
+  .list-tabs {
+    padding: 0 14px 12px;
+    gap: 4px;
+  }
+  .list-tab-label {
+    font-size: 0.6rem;
+  }
 }
-.list-tab.active .list-tab-count {
-  color: var(--c-mode);
+.list-tab.active {
+  background: var(--ink);
+  color: var(--paper-3);
+}
+.list-tab.active .list-tab-label {
+  color: var(--paper-2);
 }
 .list-search {
   padding: 0 20px 12px;
@@ -866,17 +1097,18 @@ dialog.sheet::backdrop {
 }
 .list-search input {
   width: 100%;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--c-line);
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--c-text);
-  font: inherit;
+  padding: 9px 12px;
+  border-radius: 5px;
+  border: 2px solid var(--ink);
+  background: var(--paper);
   font-size: 0.9rem;
+}
+.list-search input::placeholder {
+  color: var(--ink-2);
 }
 .list-search input:focus {
   outline: none;
-  border-color: var(--c-mode);
+  border-color: var(--mode);
 }
 
 .list-items {
@@ -886,37 +1118,38 @@ dialog.sheet::backdrop {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--c-line);
+  padding: 9px 0;
+  border-bottom: 1.5px dashed var(--ink-2);
   content-visibility: auto;
-  contain-intrinsic-size: auto 72px;
+  contain-intrinsic-size: auto 74px;
 }
 .list-thumb {
   width: 40px;
   height: 56px;
-  border-radius: 6px;
+  border-radius: 3px;
+  border: 2px solid var(--ink);
   object-fit: cover;
   flex-shrink: 0;
-  background: var(--c-surface);
+  background: var(--paper-2);
 }
 .list-thumb.placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  color: var(--c-sub);
+  font-family: var(--font-display);
+  color: var(--ink-2);
 }
 .list-main {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 .list-title {
-  color: var(--c-text);
+  color: var(--ink);
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 900;
   font-size: 0.9rem;
   white-space: nowrap;
   overflow: hidden;
@@ -924,35 +1157,37 @@ dialog.sheet::backdrop {
 }
 .list-title:hover {
   text-decoration: underline;
+  text-decoration-thickness: 2px;
 }
 .list-sub {
-  font-size: 0.75rem;
-  color: var(--c-sub);
+  font-size: 0.74rem;
+  color: var(--ink-2);
 }
 .list-status {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--c-text);
-  border: 1px solid var(--c-line);
-  border-radius: 8px;
-  padding: 6px 4px;
-  font: inherit;
-  font-size: 0.75rem;
+  background: var(--paper-3);
+  border: 2px solid var(--ink);
+  border-radius: 5px;
+  padding: 5px 4px;
+  font-size: 0.74rem;
+  font-weight: 700;
   max-width: 108px;
   cursor: pointer;
 }
 .list-status option {
-  background: var(--c-card);
+  background: var(--paper-3);
+  color: var(--ink);
 }
 .list-remove {
   width: 28px;
   height: 28px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
 }
 .list-empty {
-  color: var(--c-sub);
+  color: var(--ink-2);
   text-align: center;
   padding: 40px 10px;
   font-size: 0.9rem;
+  font-weight: 700;
 }
 .list-more {
   display: flex;
@@ -962,8 +1197,10 @@ dialog.sheet::backdrop {
 
 .list-tools summary {
   cursor: pointer;
-  font-weight: 700;
-  font-size: 0.9rem;
+  font-weight: 900;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   list-style: none;
   display: flex;
   align-items: center;
@@ -973,12 +1210,13 @@ dialog.sheet::backdrop {
   display: none;
 }
 .list-tools summary::after {
-  content: "▾";
-  color: var(--c-sub);
-  transition: transform 0.2s;
+  content: "+";
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  line-height: 1;
 }
 .list-tools[open] summary::after {
-  transform: rotate(180deg);
+  content: "−";
 }
 .tools-grid {
   display: grid;
@@ -991,48 +1229,54 @@ dialog.sheet::backdrop {
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid var(--c-line);
-  background: rgba(255, 255, 255, 0.04);
+  padding: 10px 12px;
+  border-radius: 5px;
+  border: 2px solid var(--ink);
+  background: var(--paper-3);
+  box-shadow: 2px 2px 0 var(--shade);
   cursor: pointer;
   text-align: left;
-  transition: 0.2s;
 }
-.tool-btn:hover {
-  background: rgba(255, 255, 255, 0.09);
+.tool-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
 }
 .tool-btn strong {
-  font-size: 0.85rem;
+  font-size: 0.84rem;
+  font-weight: 900;
 }
 .tool-btn small {
   font-size: 0.72rem;
-  color: var(--c-sub);
+  color: var(--ink-2);
 }
 .tool-btn.primary {
   grid-column: 1 / -1;
-  border-color: var(--c-mode);
-  background: var(--c-mode-soft);
+  background: var(--mode);
+  color: var(--on-mode);
+}
+.tool-btn.primary small {
+  color: inherit;
+  opacity: 0.85;
 }
 .tools-hint {
   margin: 12px 0;
-  font-size: 0.75rem;
-  color: var(--c-sub);
+  font-size: 0.74rem;
+  color: var(--ink-2);
   line-height: 1.5;
 }
 .btn-danger {
   width: 100%;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(233, 64, 87, 0.4);
+  padding: 9px;
+  border-radius: 5px;
+  border: 2px dashed var(--red);
   background: transparent;
-  color: #ff6b6b;
-  font-weight: 600;
-  font-size: 0.85rem;
+  color: var(--red);
+  font-weight: 900;
+  font-size: 0.82rem;
   cursor: pointer;
 }
 .btn-danger:hover {
-  background: rgba(233, 64, 87, 0.12);
+  background: var(--paper-2);
 }
 
 /* --- DETALLE --- */
@@ -1042,13 +1286,14 @@ dialog.sheet::backdrop {
   margin-bottom: 16px;
 }
 .detail-cover {
-  width: 110px;
+  width: 108px;
   aspect-ratio: 2 / 3;
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: 4px;
+  border: 2.5px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--shade);
   flex-shrink: 0;
-  background: var(--c-surface);
-  box-shadow: var(--shadow-soft);
+  background: var(--paper-2);
 }
 .detail-heading {
   display: flex;
@@ -1057,17 +1302,22 @@ dialog.sheet::backdrop {
   min-width: 0;
 }
 .detail-title {
-  font-size: 1.3rem;
-  font-weight: 800;
-  line-height: 1.15;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.25rem;
+  line-height: 1.2;
 }
 .detail-alt {
-  font-size: 0.85rem;
-  color: var(--c-sub);
+  font-size: 0.82rem;
+  color: var(--ink-2);
+}
+.detail-alt:empty {
+  display: none;
 }
 .detail-studio {
   font-size: 0.8rem;
-  color: var(--c-sub);
+  font-weight: 700;
+  color: var(--ink-2);
 }
 .detail-studio:empty {
   display: none;
@@ -1077,14 +1327,13 @@ dialog.sheet::backdrop {
 }
 .detail-desc {
   font-size: 0.9rem;
-  line-height: 1.6;
-  color: #d4d4dc;
+  line-height: 1.65;
   white-space: pre-line;
   margin-bottom: 18px;
 }
 .detail-links {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
   margin-bottom: 18px;
 }
@@ -1095,39 +1344,48 @@ dialog.sheet::backdrop {
   position: sticky;
   bottom: 0;
   padding: 12px 0 4px;
-  background: linear-gradient(to top, var(--c-card) 75%, transparent);
+  background: var(--paper-3);
+  border-top: 2px solid var(--ink);
 }
 .detail-action {
-  padding: 12px 4px;
-  border-radius: 12px;
-  border: 1px solid currentColor;
-  background: rgba(255, 255, 255, 0.03);
-  font-weight: 700;
-  font-size: 0.78rem;
+  padding: 10px 4px;
+  border-radius: 5px;
+  border: 2px solid var(--ink);
+  background: var(--paper-3);
+  box-shadow: 2px 2px 0 var(--shade);
+  font-weight: 900;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
   cursor: pointer;
-  transition: background 0.2s;
 }
-.detail-action:hover {
-  background: rgba(255, 255, 255, 0.08);
+.detail-action:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+.detail-action.btn-love {
+  background: var(--red);
+  color: var(--on-mode);
 }
 
-/* --- AVISOS --- */
+/* --- AVISOS (bocadillo) --- */
 #toast {
   position: fixed;
   left: 50%;
-  bottom: calc(120px + env(safe-area-inset-bottom));
-  transform: translate(-50%, 20px);
-  background: #f4f4f6;
-  color: #0f0f13;
-  padding: 10px 18px;
+  bottom: calc(122px + env(safe-area-inset-bottom));
+  transform: translate(-50%, 16px);
+  background: var(--paper-3);
+  color: var(--ink);
+  border: 2.5px solid var(--ink);
+  padding: 9px 18px;
   border-radius: 999px;
+  box-shadow: 3px 3px 0 var(--shade);
   font-size: 0.85rem;
-  font-weight: 600;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  font-weight: 900;
   opacity: 0;
   pointer-events: none;
   transition:
-    opacity 0.25s,
+    opacity 0.2s,
     transform 0.25s var(--ease-out);
   z-index: 1000;
   max-width: calc(100% - 32px);
@@ -1154,12 +1412,12 @@ dialog.sheet::backdrop {
     transform: translateY(0);
   }
 }
-@keyframes shimmer {
+@keyframes tone {
   from {
-    transform: translateX(-100%);
+    background-position: 0 0;
   }
   to {
-    transform: translateX(100%);
+    background-position: 12px 0;
   }
 }
 
