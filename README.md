@@ -18,8 +18,9 @@ rapid anime tracker. build your watched list in minutes. a tinder-like interface
 - **export to myanimelist / anilist:** download a mal-format xml ready for `myanimelist.net/import.php` or `anilist.co/settings/import`. also csv and a full json backup you can restore on another device.
 - **filters:** sort (popular / top rated / trending), format, airing status, decade, genres and, for manga, origin (manga / manhwa / manhua). filters are remembered per mode.
 - **resumes where you left off:** each filter combination remembers its page, so you don't re-swipe the same titles.
+- **manga-print look:** paper & ink panels, screentone, hanko-style stamps and self-hosted fonts (dela gothic one + zen kaku gothic new). follows your system's dark mode.
 - **dual mode:** switch between anime and manga.
-- **bilingual:** spanish / english, detected from your browser.
+- **bilingual:** spanish / english, detected from your browser (switch it in the filters panel).
 - **installable (pwa):** add it to your home screen; your list opens offline.
 - **privacy first:** data is stored in your browser (localstorage). no login required.
 - **powered by anilist api:** real-time data from anilist, with automatic back-off when the api is rate limited.
@@ -39,7 +40,7 @@ rapid anime tracker. build your watched list in minutes. a tinder-like interface
 ## tech stack
 
 - html5 (`<dialog>` sheets)
-- css3 (variables & flexbox)
+- css3 (variables & flexbox), self-hosted fonts under the sil open font license (`fonts/OFL.txt`)
 - vanilla javascript (pointer events)
 - anilist graphql api
 - service worker + web app manifest
